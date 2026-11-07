@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nova Salud - Gestión de inventario y ventas</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#f1f5f4;color:#1f2937}
+header{background:#0f766e;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:20px}
+nav{display:flex;gap:6px;padding:12px 24px;background:#fff;border-bottom:1px solid #d1d5db}
+nav button{border:0;background:#e5e7eb;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:14px}
+nav button.on{background:#0f766e;color:#fff}
+main{padding:20px 24px;max-width:1100px;margin:auto}
+.card{background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px #0002}
+h2{margin:0 0 12px;font-size:17px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid #e5e7eb}
+th{background:#f3f4f6}
+input{padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px}
+.btn{background:#0f766e;color:#fff;border:0;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:14px}
+.btn.red{background:#b91c1c}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.alerta{background:#fee2e2;border-left:5px solid #b91c1c;padding:10px 14px;margin-bottom:8px;border-radius:4px}
+.aviso{background:#fef3c7;border-left:5px solid #d97706;padding:10px 14px;margin-bottom:8px;border-radius:4px}
+.ok{background:#dcfce7;border-left:5px solid #16a34a;padding:10px 14px;border-radius:4px}
+.bajo{color:#b91c1c;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.total{font-size:22px;font-weight:bold;text-align:right;margin:10px 0}
+#login{position:fixed;inset:0;background:#0f766e;display:flex;align-items:center;justify-content:center;z-index:10}
+.caja{background:#fff;padding:28px;border-radius:10px;width:320px}
+.caja input{width:100%;margin-bottom:10px}
+#lErr{color:#b91c1c;font-size:14px;min-height:18px;margin-bottom:8px}
+.sec{display:none}.sec.on{display:block}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="caja">
+    <h2>Nova Salud</h2>
+    <p style="margin-top:0;color:#6b7280">Inicia sesión para continuar</p>
+    <input id="lUser" placeholder="Usuario">
+    <input id="lPass" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()">
+    <div id="lErr"></div>
+    <button class="btn" style="width:100%" onclick="login()">Ingresar</button>
+  </div>
+</div>
+<header><h1>Nova Salud - Gestión de inventario y ventas</h1><span><span id="fecha"></span> &nbsp; <b id="quien"></b> &nbsp; <button class="btn" style="background:#115e59" onclick="salir()">Salir</button></span></header>
+<nav>
+  <button data-s="venta" class="on">Venta rápida</button>
+  <button data-s="inventario">Inventario</button>
+  <button data-s="registro">Registro de ventas</button>
+  <button data-s="alertas">Alertas <span id="nAlertas"></span></button>
+</nav>
+<main>
+
+<section id="venta" class="sec on">
+  <div class="grid">
+    <div class="card">
+      <h2>Buscar producto</h2>
+      <input id="buscar" placeholder="Escribe el nombre del producto" style="width:100%;margin-bottom:10px">
+      <table><thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th></th></tr></thead><tbody id="listaVenta"></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Venta actual</h2>
+      <table><thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr></thead><tbody id="carrito"></tbody></table>
+      <div class="total">Total: S/ <span id="total">0.00</span></div>
+      <div class="row"><input id="cliente" placeholder="Cliente (opcional)" style="flex:1">
+      <button class="btn" onclick="cobrar()">Cobrar y registrar venta</button></div>
+      <div id="msg"></div>
+    </div>
+  </div>
+</section>
+
+<section id="inventario" class="sec">
+  <div class="card">
+    <h2>Agregar producto</h2>
+    <div class="row">
+      <input id="pNombre" placeholder="Nombre">
+      <input id="pPrecio" type="number" step="0.1" placeholder="Precio S/">
+      <input id="pStock" type="number" placeholder="Stock">
+      <input id="pMin" type="number" placeholder="Stock mínimo">
+      <input id="pVence" type="date">
+      <button class="btn" onclick="agregarProducto()">Guardar</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Inventario actual</h2>
+    <table><thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Mínimo</th><th>Vence</th><th>Reponer</th><th></th></tr></thead><tbody id="tablaInv"></tbody></table>
+  </div>
+</section>
+
+<section id="registro" class="sec">
+  <div class="card">
+    <h2>Registro de ventas</h2>
+    <table><thead><tr><th>N°</th><th>Fecha y hora</th><th>Cliente</th><th>Detalle</th><th>Total</th></tr></thead><tbody id="tablaVentas"></tbody></table>
+    <div class="total">Total vendido: S/ <span id="totalVendido">0.00</span></div>
+  </div>
+</section>
+
+<section id="alertas" class="sec">
+  <div class="card"><h2>Alertas de reposición y vencimiento</h2><div id="listaAlertas"></div></div>
+</section>
+
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let productos = [], ventas = [], carrito = [];
+
+async function api(url, metodo = "GET", cuerpo) {
+  const r = await fetch(url, {
+    method: metodo,
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (token() || "") },
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined
+  });
+  const datos = await r.json();
+  if (r.status === 401 && url !== "/api/login") { sessionStorage.clear(); $("login").style.display = "flex"; }
+  if (!r.ok) throw new Error(datos.error || "Error en el servidor");
+  return datos;
+}
+function token() { try { return sessionStorage.getItem("ns_token"); } catch (e) { return null; } }
+async function login() {
+  try {
+    const d = await api("/api/login", "POST", { usuario: $("lUser").value, clave: $("lPass").value });
+    sessionStorage.setItem("ns_token", d.token);
+    sessionStorage.setItem("ns_user", JSON.stringify(d));
+    $("lErr").textContent = ""; $("lPass").value = "";
+    iniciar();
+  } catch (e) { $("lErr").textContent = e.message; }
+}
+async function salir() {
+  try { await api("/api/logout", "POST"); } catch (e) {}
+  sessionStorage.clear(); location.reload();
+}
+function iniciar() {
+  if (!token()) { $("login").style.display = "flex"; return; }
+  const u = JSON.parse(sessionStorage.getItem("ns_user"));
+  $("login").style.display = "none";
+  $("quien").textContent = u.usuario + " (" + u.rol + ")";
+  document.querySelector('nav button[data-s="inventario"]').style.display = u.rol === "admin" ? "" : "none";
+  mostrar("venta");
+  cargar().catch(() => {});
+}
+async function cargar() {
+  productos = await api("/api/productos");
+  ventas = await api("/api/ventas");
+  pintarTodo();
+}
+function porVencer(p) {
+  return (new Date(p.vence) - new Date()) / 86400000 <= 60;
+}
+function mostrar(s) {
+  document.querySelectorAll(".sec").forEach(x => x.classList.toggle("on", x.id === s));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.s === s));
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => mostrar(b.dataset.s));
+
+function pintarVenta() {
+  const t = $("buscar").value.toLowerCase();
+  $("listaVenta").innerHTML = productos.filter(p => p.nombre.toLowerCase().includes(t)).map(p =>
+    `<tr><td>${p.nombre}</td><td>S/ ${p.precio.toFixed(2)}</td><td class="${p.stock <= p.min ? 'bajo' : ''}">${p.stock}</td>
+    <td><button class="btn" ${p.stock <= 0 ? 'disabled' : ''} onclick="agregarCarrito(${p.id})">Agregar</button></td></tr>`).join("");
+}
+function agregarCarrito(id) {
+  const p = productos.find(x => x.id === id);
+  const it = carrito.find(x => x.id === id);
+  const enCarro = it ? it.cant : 0;
+  if (enCarro + 1 > p.stock) { mensaje("No hay más stock de " + p.nombre, "aviso"); return; }
+  if (it) it.cant++; else carrito.push({ id, nombre: p.nombre, precio: p.precio, cant: 1 });
+  mensaje("", ""); pintarCarrito();
+}
+function quitar(id) { carrito = carrito.filter(x => x.id !== id); pintarCarrito(); }
+function pintarCarrito() {
+  $("carrito").innerHTML = carrito.map(i => `<tr><td>${i.nombre}</td><td>${i.cant}</td><td>S/ ${(i.cant * i.precio).toFixed(2)}</td>
+    <td><button class="btn red" onclick="quitar(${i.id})">X</button></td></tr>`).join("");
+  $("total").textContent = carrito.reduce((a, i) => a + i.cant * i.precio, 0).toFixed(2);
+}
+function mensaje(t, c) { $("msg").innerHTML = t ? `<div class="${c}">${t}</div>` : ""; }
+
+async function cobrar() {
+  if (!carrito.length) { mensaje("Agrega productos a la venta", "aviso"); return; }
+  try {
+    const venta = await api("/api/ventas", "POST", {
+      items: carrito.map(i => ({ id: i.id, cant: i.cant })),
+      cliente: $("cliente").value
+    });
+    const ids = carrito.map(i => i.id);
+    carrito = []; $("cliente").value = "";
+    await cargar();
+    let m = "Venta registrada correctamente. Total S/ " + venta.total.toFixed(2);
+    const bajos = productos.filter(p => ids.includes(p.id) && p.stock <= p.min);
+    if (bajos.length) m += "<br>Atención, stock bajo en: " + bajos.map(p => p.nombre).join(", ");
+    mensaje(m, "ok");
+  } catch (e) { mensaje(e.message, "aviso"); }
+}
+function pintarInv() {
+  $("tablaInv").innerHTML = productos.map(p => `<tr><td>${p.nombre}</td><td>S/ ${p.precio.toFixed(2)}</td>
+    <td class="${p.stock <= p.min ? 'bajo' : ''}">${p.stock}</td><td>${p.min}</td><td>${p.vence}</td>
+    <td><input type="number" id="r${p.id}" placeholder="+" style="width:70px"> <button class="btn" onclick="reponer(${p.id})">Sumar</button></td>
+    <td><button class="btn red" onclick="eliminar(${p.id})">Eliminar</button></td></tr>`).join("");
+}
+async function agregarProducto() {
+  const n = $("pNombre").value.trim();
+  if (!n || !$("pPrecio").value || !$("pStock").value || !$("pVence").value) { alert("Completa todos los campos"); return; }
+  try {
+    await api("/api/productos", "POST", {
+      nombre: n, precio: $("pPrecio").value, stock: $("pStock").value,
+      min: $("pMin").value, vence: $("pVence").value
+    });
+    ["pNombre", "pPrecio", "pStock", "pMin", "pVence"].forEach(x => $(x).value = "");
+    cargar();
+  } catch (e) { alert(e.message); }
+}
+async function reponer(id) {
+  const v = +$("r" + id).value; if (v <= 0) return;
+  await api("/api/productos/" + id + "/reponer", "PUT", { cantidad: v });
+  cargar();
+}
+async function eliminar(id) {
+  if (confirm("¿Eliminar este producto?")) { await api("/api/productos/" + id, "DELETE"); cargar(); }
+}
+function pintarRegistro() {
+  $("tablaVentas").innerHTML = ventas.length ? ventas.map(v => `<tr><td>${v.n}</td><td>${v.fecha}</td><td>${v.cliente}</td>
+    <td>${v.detalle}</td><td>S/ ${v.total.toFixed(2)}</td></tr>`).join("") : '<tr><td colspan="5">Aún no hay ventas registradas</td></tr>';
+  $("totalVendido").textContent = ventas.reduce((a, v) => a + v.total, 0).toFixed(2);
+}
+function pintarAlertas() {
+  const bajos = productos.filter(p => p.stock <= p.min);
+  const venc = productos.filter(porVencer);
+  $("nAlertas").textContent = (bajos.length + venc.length) ? "(" + (bajos.length + venc.length) + ")" : "";
+  let h = bajos.map(p => `<div class="alerta">Stock bajo: <b>${p.nombre}</b> tiene ${p.stock} unidades y el mínimo es ${p.min}. Se recomienda reponer.</div>`).join("");
+  h += venc.map(p => `<div class="aviso">Por vencer: <b>${p.nombre}</b> vence el ${p.vence}.</div>`).join("");
+  $("listaAlertas").innerHTML = h || '<div class="ok">Todo en orden, no hay alertas</div>';
+}
+function pintarTodo() { pintarVenta(); pintarCarrito(); pintarInv(); pintarRegistro(); pintarAlertas(); }
+$("buscar").oninput = pintarVenta;
+$("fecha").textContent = new Date().toLocaleDateString("es-PE");
+iniciar();
+</script>
+</body>
+</html>

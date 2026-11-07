@@ -1,0 +1,61 @@
+{
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Paracetamol 500 mg",
+      "precio": 0.5,
+      "stock": 119,
+      "min": 30,
+      "vence": "2027-06-30"
+    },
+    {
+      "id": 2,
+      "nombre": "Ibuprofeno 400 mg",
+      "precio": 0.8,
+      "stock": 18,
+      "min": 25,
+      "vence": "2027-03-15"
+    },
+    {
+      "id": 3,
+      "nombre": "Amoxicilina 500 mg",
+      "precio": 1.2,
+      "stock": 40,
+      "min": 20,
+      "vence": "2026-12-01"
+    },
+    {
+      "id": 4,
+      "nombre": "Alcohol 70% 250 ml",
+      "precio": 4.5,
+      "stock": 8,
+      "min": 10,
+      "vence": "2028-01-10"
+    },
+    {
+      "id": 5,
+      "nombre": "Vitamina C 1 g",
+      "precio": 1.5,
+      "stock": 60,
+      "min": 20,
+      "vence": "2027-09-20"
+    },
+    {
+      "id": 6,
+      "nombre": "Mascarillas x unidad",
+      "precio": 0.5,
+      "stock": 200,
+      "min": 50,
+      "vence": "2029-01-01"
+    }
+  ],
+  "ventas": [
+    {
+      "n": 1,
+      "fecha": "6/11/2026, 11:29:23 p. m.",
+      "cliente": "Ferando",
+      "detalle": "1 x Paracetamol 500 mg",
+      "total": 0.5
+    }
+  ]
+}
